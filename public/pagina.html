@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Force-Directed Graph with D3.js</title>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <style>
+    .node {
+      stroke: #555;
+      stroke-width: 1.5px;
+    }
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+    .tooltip {
+      position: absolute;
+      text-align: center;
+      width: 200px;
+      padding: 4px;
+      font: 12px sans-serif;
+      background: lightsteelblue;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    #subtitle {
+      max-width: 800px; /* Ajusta el ancho máximo según sea necesario */
+      margin: 0px auto; /* Centra el contenido horizontalmente */
+      text-align: justify; /* Justifica el texto */
+    }
+  </style>
+</head>
+<body>
+  <div id="subtitle">
+    <h2>Grafo de fuerzas: eurosis</h2>
+    <p>Consiste de la red de trastornos y genes patológicos vinculados por asociaciones conocidas entre genes y trastornos, lo que indica el origen genético común de muchas enfermedades (The Human Disease Network, Goh K-I, Cusick ME, Valle D, Childs B, Vidal M, Barabási A-L (2007), Proc Natl Acad Sci USA 104:8685-8690).</p>
+    <svg width="600" height="400"></svg>
+    </div>
+  <!-- <svg width="600" height="400"></svg> -->
+  <script src="script.js"></script>
+</body>
+</html>

@@ -17,17 +17,16 @@ d3.json("eurosis.json").then(graph => {
     .scaleExtent([1 / 2, 8])
     .on("zoom", zoomed);
 
-  const link = svg.append("g")
-    .attr("class", "links")
-    .selectAll("line")
+  const linkGroup = svg.append("g").attr("class", "links");
+  const nodeGroup = svg.append("g").attr("class", "nodes");
+
+  const link = linkGroup.selectAll("line")
     .data(graph.edges)
     .enter().append("line")
     .attr("class", "link")
     .attr("stroke-width", d => Math.sqrt(d.attributes.weight));
 
-  const node = svg.append("g")
-    .attr("class", "nodes")
-    .selectAll("circle")
+  const node = nodeGroup.selectAll("circle")
     .data(graph.nodes)
     .enter().append("circle")
     .attr("class", "node")
@@ -53,7 +52,7 @@ d3.json("eurosis.json").then(graph => {
       .on("drag", dragged)
       .on("end", dragended));
 
-  svg.call(zoom);
+  nodeGroup.call(zoom);
 
   simulation
     .nodes(graph.nodes)
@@ -74,8 +73,15 @@ d3.json("eurosis.json").then(graph => {
       .attr("cy", d => d.y);
   }
 
+  let currentScale = 1;
+  let currentTranslate = [0, 0];
+
   function zoomed(event) {
-    svg.attr("transform", event.transform);
+    currentScale = event.transform.k;
+    currentTranslate = [event.transform.x, event.transform.y];
+
+    nodeGroup.attr("transform", event.transform);
+    linkGroup.attr("transform", event.transform);
   }
 
   function dragstarted(event, d) {
@@ -94,4 +100,6 @@ d3.json("eurosis.json").then(graph => {
     d.fx = null;
     d.fy = null;
   }
+
+  svg.call(zoom); // Aplica el zoom al SVG completo para escuchar eventos de zoom
 });

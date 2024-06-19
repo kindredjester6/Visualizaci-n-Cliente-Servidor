@@ -5,6 +5,33 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Visualización de información</title>
+    <style>
+      .node {
+        stroke: #555;
+        stroke-width: 1.5px;
+      }
+      .link {
+        stroke: #999;
+        stroke-opacity: 0.6;
+      }
+      .tooltip {
+        position: absolute;
+        text-align: center;
+        width: 25vh;
+        padding: 4px;
+        font: 12px sans-serif bold;
+        background: lightsteelblue;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        pointer-events: none;
+        
+      }
+      #subtitle {
+        max-width: 800px; /* Ajusta el ancho máximo según sea necesario */
+        margin: 0px auto; /* Centra el contenido horizontalmente */
+        text-align: justify; /* Justifica el texto */
+      }
+    </style>
   </head>
   <body>
     <style>
@@ -13,21 +40,28 @@
         height: 1080px;
       }
     </style>
-    <h1>Graficos</h1>
-    <button id="fetch-graph-diseases">Generar grafo diseases</button>
-    <div class="container" id="graphDiseases"></div>
-    <button id="fetch-graph-school">Generar grafo school</button>
-    <div class="container" id="graphSchool"></div>
-    <button id="fetch-graph-eurosis">Generar grafo eurosis</button>
-    <div class="container" id = "graphEurosis"></div>
+
+    <article id="subtitle">
+      <h1>Graficos</h1>
+      <h2>Consiste de la red de trastornos y genes patológicos vinculados por asociaciones conocidas entre genes y trastornos, lo que indica el origen genético común de muchas enfermedades (The Human Disease Network, Goh K-I, Cusick ME, Valle D, Childs B, Vidal M, Barabási A-L (2007), Proc Natl Acad Sci USA 104:8685-8690).</h2>
+      <button id="fetch-graph-diseases">Generar grafo diseases</button>
+      <div class="container" id="graphDiseases"></div>
+      
+      <h2>Conjunto de datos que forma parte de un estudio de las redes de contacto en un centro de enseñanza primaria, del que se informa en el artículo High-Resolution Measurements of Face-to-Face Contact Patterns in a Primary School.</h2>
+      <button id="fetch-graph-school">Generar grafo school</button>
+      <div class="container" id="graphSchool"></div>
+
+      <h2>Grafo de fuerzas: eurosis</h2>
+      <p>Consiste de la red de trastornos y genes patológicos vinculados por asociaciones conocidas entre genes y trastornos, lo que indica el origen genético común de muchas enfermedades (The Human Disease Network, Goh K-I, Cusick ME, Valle D, Childs B, Vidal M, Barabási A-L (2007), Proc Natl Acad Sci USA 104:8685-8690).</p>
+      <button id="fetch-graph-eurosis">Generar grafo eurosis</button>
+      <div class="container" id = "graphEurosis"></div>
+    </article>
 
     <script type="module">
       import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-  //   let width = 2240;
-  //   let height = 1080;
 
       async function draw(url, fuerza, className){
-        await fetch(`http://localhost:8888/api/${url}`) //Retorna un json que contiene el modelo del grafo(nodos, enlaces)
+        await fetch(`https://visualizacion-cliente-servidor.netlify.app/.netlify/functions/${url}`) //Retorna un json que contiene el modelo del grafo(nodos, enlaces)
           .then(response => response.json()) //se encuentra convertido(no necesidad de JSON.parse())
           .then(modelGraph => {
             const zoom = d3.zoom()
@@ -102,25 +136,14 @@
             .on('click', (event, d) => {
             zoomToNode(d);
           });
-          const labels = svg.append('g')
-            .attr('class', 'labels')
-            .selectAll('text')
-            .data(nodesTest)
-            .enter().append('text')
-            .attr('class', 'label')
-            .attr('dy', -15)
-            .text(d => d.attributes.label)
-            .on('click', (event, d) => {
-              zoomToNode(d);
-          });
 
           node.on("mouseover", (event, d) => {
             tooltip.transition()
             .duration(200)
             .style("opacity", .9);
             tooltip.html(`Label: ${d.attributes.label}<br>
-                    Country: ${d.attributes[0]}<br>
-                    Category: ${d.attributes[1]}`)
+                     ${d.attributes[0]}<br>
+                     ${d.attributes[1]}`)
             .style("left", (event.pageX) + "px")
             .style("top", (event.pageY - 28) + "px");
           })
@@ -143,9 +166,6 @@
 
               node.attr('cx', d => d.x)
                   .attr('cy', d => d.y);
-              labels
-                  .attr('x', d => d.x)
-                  .attr('y', d => d.y);
           });
           
           function dragstarted(event) {
@@ -170,7 +190,6 @@
             .duration(750)
             .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
           }
-          //document.getElementById("container").innerHTML = svg.node()
           
         }).catch(error => console.error('Error:', error));
       }
@@ -179,7 +198,6 @@
        const fetchDiseases = document.getElementById('fetch-graph-diseases');
        const fetchSchool = document.getElementById('fetch-graph-school');
        const fetchEurosis = document.getElementById('fetch-graph-eurosis');
-     //  const responseText = document.getElementById('response-output')
 
         fetchDiseases.addEventListener('click', async () => {
           let fuerza = -45;
@@ -190,7 +208,7 @@
           draw("school", fuerza, "#graphSchool")
         })
         fetchEurosis.addEventListener('click', async () => {
-          let fuerza = -45;
+          let fuerza = -200;
           draw("eurosis", fuerza, "#graphEurosis")
         })
       })

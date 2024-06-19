@@ -7,7 +7,7 @@ global.document = document;
 
 export const handler = async (event, context) => {
     try {
-        let data = await d3.json("http://localhost:8888/eurosis.json")
+        let data = await d3.json("https://visualizacion-cliente-servidor.netlify.app/eurosis.json")
         
         let nodos = data.nodes.map(function(element){
             return {key : element.key, "attributes": {"label": element.attributes.label,
@@ -26,7 +26,7 @@ export const handler = async (event, context) => {
            },
            body: JSON.stringify({ nodos : nodos
             , links : links
-            , options : options}) //container.node().innerHTML
+            , options : options}) 
          };
        } catch (error) {
          return {

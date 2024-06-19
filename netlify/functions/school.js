@@ -7,7 +7,7 @@ global.document = document;
 
 export const handler = async (event, context) => {
     try {
-        let data = await d3.json("http://localhost:8888/school.json")
+        let data = await d3.json("https://visualizacion-cliente-servidor.netlify.app/school.json")
         
         let nodos = data.nodes; // -> {key : num, attributes : {label : size, color : ######, 0 : #+letra, 1 : letra}}
         let links = data.edges; // -> {key : num, source : nodeKey1, target : nodeKey2} (nodeKey1 y 2 pueden ser iguales)
@@ -20,7 +20,7 @@ export const handler = async (event, context) => {
            },
            body: JSON.stringify({ nodos : nodos
             , links : links
-            , options : options}) //container.node().innerHTML
+            , options : options})
          };
        } catch (error) {
          return {
