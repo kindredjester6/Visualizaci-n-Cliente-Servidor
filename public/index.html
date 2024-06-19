@@ -8,141 +8,193 @@
   </head>
   <body>
     <style>
-      #container{
-        width: 500px;
-        height: 500px;
+      .container{
+        width: fit-content;
+        height: 1080px;
       }
     </style>
     <h1>Graficos</h1>
-    <div id="container" ></div>
+    <button id="fetch-graph-diseases">Generar grafo diseases</button>
+    <div class="container" id="graphDiseases"></div>
+    <button id="fetch-graph-school">Generar grafo school</button>
+    <div class="container" id="graphSchool"></div>
+    <button id="fetch-graph-eurosis">Generar grafo eurosis</button>
+    <div class="container" id = "graphEurosis"></div>
 
     <script type="module">
-  //   import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-  //   let data = await d3.json("school.json")
+      import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
   //   let width = 2240;
   //   let height = 1080;
-    
-  //   console.log(data)
 
-  //   //const nodesTest = data.nodes.map(d => ({...d})); Copia profunda
-    
-  //   const nodesTest = data.nodes; //Copia superficial
-
-  //   const linkTest = data.edges
-    
-  //   console.log(nodesTest, linkTest)
-  //   const nodes = [ 
-  //       {"key": "1789", "attributes": {"color" : "#fff234", "label": "1789"}},
-  //       {"key": "1780", "attributes": {"color" : "#ecc334", "label": "1780"}},
-  //       {"key": "1785", "attributes": {"color" : "#edb034", "label": "1785"}}
-  //     ];
-  
-  //     const links = [{"key": "3426", "source": "1789", "target": "1780", 
-  //       "attributes": {
-  //       "weight": 1.0,
-  //       "2": 20,
-  //       "3": 1}}
-  //       , {"key": "3440", "source": "1780", "target": "1785",
-  //       "attributes": {
-  //       "weight": 1.0,
-  //       "2": 40,
-  //       "3": 50}}];
-
-  //     const simulation = d3.forceSimulation(nodesTest)  
-  //         .force("charge", d3.forceManyBody().strength(0))
-  //         .force("link", d3.forceLink(linkTest).id(d => d.key).strength(0.1).distance(height/2).iterations(5))
-  //         .force('center', d3.forceCenter())
-  //        // .force("y", d3.forceY());
-
-  //     const svg = d3.create("svg")
-  //       .attr("width", width)
-  //       .attr("height", height)
-  //       .attr("viewBox", [-width / 2, -height / 2, width, height])
-  //       .attr("style", "max-width: 100%; height: auto;");
+      async function draw(url, fuerza, className){
+        await fetch(`http://localhost:8888/api/${url}`) //Retorna un json que contiene el modelo del grafo(nodos, enlaces)
+          .then(response => response.json()) //se encuentra convertido(no necesidad de JSON.parse())
+          .then(modelGraph => {
+            const zoom = d3.zoom()
+              .scaleExtent([1 / 5, 8])
+              .on('zoom', function(event) {
+                svg.attr('transform', event.transform);
+            });
+            console.log(modelGraph)
+              const width = 1080;
+              const height = 1080;
+              let nodesTest = modelGraph.nodos;
+              let linkTest = modelGraph.links;
+              let options = modelGraph.options; 
+        // console.log(await d.arrayBuffer())
+        const simulation = d3.forceSimulation(nodesTest)  
+          .force("charge", d3.forceManyBody().strength(fuerza))
+          .force("link", d3.forceLink(linkTest).id(d => d.key).strength(0.2).distance(100).iterations(1/2))
+          .force('center', d3.forceCenter(16/9, 16/9));
       
-  //     const link = svg.append("g")
-  //         .attr("stroke", "#999")
-  //         .attr("stroke-opacity", 0.6)
-  //         .selectAll('.link')
-  //         .data(linkTest)
-  //           .enter().append("path")
-  //           .attr("class", "link")
-  //           .attr("d", d => {
-  //             if (d.source === d.target) {
-  //               // Crea una curva para el bucle
-  //               return `M${d.source.x},${d.source.y}A${d.source.attributes.size},${d.source.attributes.size} 0 1,1 ${d.target.x},${d.target.y}`;
-  //             } else {
-  //               // Crea una línea recta para aristas normales
-  //               return `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`;
-  //             }
-  //           });
-  //           //.attr("stroke-width", d => d.attributes.weight);
+      const container = d3.select(document).select(className); //# + Nombre del contenedor
 
-  //     const node = svg.append("g")
-  //       .attr("stroke", "#7fba00")
-  //       .attr("stroke-width", 1)
-  //     .selectAll('circle')
-  //     .data(nodesTest)
-  //     .join("circle")
-  //       .attr('r', 4)
-  //       .attr('fill', d => d.attributes.color);
+
+      const tooltip = container.append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
       
-  //     node.append("title")
-  //       .text(d => d.attributes.label);
-  //  //   const lineGenerator = d3.line();
+      const svg = container.append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [-width / 2, -height / 2, width, height])
+        //.attr("class", "tooltip")
+        //.style("opacity", 0)
+        .attr("style", "max-width: 100%; height: auto;")
+        .call(zoom)
+        .append('g');
       
-  //     node.call(d3.drag()
-  //       .on("start", dragstarted)
-  //       .on("drag", dragged)
-  //       .on("end", dragended));
+      const link = svg.append("g")
+          .attr("stroke", "#999")
+          .attr("stroke-opacity", 0.6)
+          .selectAll('.link')
+          .data(linkTest)
+            .enter().append("path")
+            .attr("class", "link")
+            .attr("d", d => {
+              if (d.source === d.target) {
+                // Crea una curva para el bucle
+                return `M${d.source.x},${d.source.y}A${d.source.attributes.size},${d.source.attributes.size} 0 1,1 ${d.target.x},${d.target.y}`;
+              } else {
+                // Crea una línea recta para aristas normales
+                return `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`;
+              }
+            });
+            //.attr("stroke-width", d => d.attributes.weight);
 
-  //     simulation.on('tick', () => {
-  //       link
-  //         .attr("d", d => {
-  //             if (d.source === d.target) {
-  //               // Crea una curva para el bucle
-  //               return `M${d.source.x},${d.source.y}A${d.source.attributes.size},${d.source.attributes.size} 0 1,1 ${d.target.x},${d.target.y}`;
-  //             } else {
-  //               // Crea una línea recta para aristas normales
-  //               return `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`;
-  //             }
-  //         });
+          const node = svg.append("g")
+            .attr("stroke", "#7fba00")
+            .attr("stroke-width", 1)
+          .selectAll('circle')
+          .data(nodesTest)
+          .join("circle")
+            .attr('r', d => d.attributes.size)
+            .attr('fill', d => d.attributes.color);
+  //        node.append("title")
+//            .text(d => d.attributes.label);
+      //   const lineGenerator = d3.line();
 
-  //         node.attr('cx', d => d.x)
-  //             .attr('cy', d => d.y);
-  //     });
+          node.call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended))
+            .on('click', (event, d) => {
+            zoomToNode(d);
+          });
+          const labels = svg.append('g')
+            .attr('class', 'labels')
+            .selectAll('text')
+            .data(nodesTest)
+            .enter().append('text')
+            .attr('class', 'label')
+            .attr('dy', -15)
+            .text(d => d.attributes.label)
+            .on('click', (event, d) => {
+              zoomToNode(d);
+          });
 
-  //     function dragstarted(event) {
-  //       if (!event.active) simulation.alphaTarget(0.3).restart();
-  //       event.subject.fx = event.subject.x;
-  //       event.subject.fy = event.subject.y;}
+          node.on("mouseover", (event, d) => {
+            tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);
+            tooltip.html(`Label: ${d.attributes.label}<br>
+                    Country: ${d.attributes[0]}<br>
+                    Category: ${d.attributes[1]}`)
+            .style("left", (event.pageX) + "px")
+            .style("top", (event.pageY - 28) + "px");
+          })
+          .on("mouseout", () => {
+            tooltip.transition()
+              .duration(500)
+              .style("opacity", 0);
+          })
+          simulation.on('tick', () => {
+            link
+              .attr("d", d => {
+                  if (d.source === d.target) {
+                    // Crea una curva para el bucle
+                    return `M${d.source.x},${d.source.y}A${d.source.attributes.size},${d.source.attributes.size} 0 1,1 ${d.target.x},${d.target.y}`;
+                  } else {
+                    // Crea una línea recta para aristas normales
+                    return `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`;
+                  }
+              });
 
-  //     function dragged(event) {
-  //       event.subject.fx = event.x;
-  //       event.subject.fy = event.y;}
+              node.attr('cx', d => d.x)
+                  .attr('cy', d => d.y);
+              labels
+                  .attr('x', d => d.x)
+                  .attr('y', d => d.y);
+          });
+          
+          function dragstarted(event) {
+            if (!event.active) simulation.alphaTarget(0.01).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;}
+            
+          function dragged(event) {
+              event.subject.fx = event.x;
+              event.subject.fy = event.y;}
+              
+          function dragended(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;}
 
-  //     function dragended(event) {
-  //       if (!event.active) simulation.alphaTarget(0);
-  //       event.subject.fx = null;
-  //       event.subject.fy = null;
-  // }
+          function zoomToNode(d) {
+              const scale = 2;  // Zoom scale factor
+              const translate = [width / 2 - d.x * scale, height / 2 - d.y * scale];
 
-    //  document.addEventListener('DOMContentLoaded', () => {
-       // const fetchBtn = document.getElementById('fetch-btn')
-     //   const responseText = document.getElementById('response-output')
+          container.transition()
+            .duration(750)
+            .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+          }
+          //document.getElementById("container").innerHTML = svg.node()
+          
+        }).catch(error => console.error('Error:', error));
+      }
 
-        // fetchBtn.addEventListener('click', async () => {
-        // const response = await fetch('/.netlify/functions/hello')
-        //   .then(response => response.json())
-        // console.log(response)
-        // responseText.innerText = response.message
-        // }) })
-      await fetch("http://localhost:8888/api/test")
-      // .then(async d => {
-    
-      //   document.getElementById("container").innerHTML = await d.text() 
-      //  // console.log(await d.arrayBuffer())
-      // })
+     document.addEventListener('DOMContentLoaded', () => {
+       const fetchDiseases = document.getElementById('fetch-graph-diseases');
+       const fetchSchool = document.getElementById('fetch-graph-school');
+       const fetchEurosis = document.getElementById('fetch-graph-eurosis');
+     //  const responseText = document.getElementById('response-output')
+
+        fetchDiseases.addEventListener('click', async () => {
+          let fuerza = -45;
+          draw("disease", fuerza, "#graphDiseases")
+        })
+        fetchSchool.addEventListener('click', async () => {
+          let fuerza = -10000;
+          draw("school", fuerza, "#graphSchool")
+        })
+        fetchEurosis.addEventListener('click', async () => {
+          let fuerza = -45;
+          draw("eurosis", fuerza, "#graphEurosis")
+        })
+      })
+      
     </script>
 
   </body>
